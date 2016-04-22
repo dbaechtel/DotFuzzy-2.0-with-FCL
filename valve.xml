@@ -1,0 +1,69 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<FUNCTION_BLOCK NAME="Fuzzy_FB">
+  <VAR_INPUT NAME="temp" TYPE="REAL" />
+  <VAR_INPUT NAME="pressure" TYPE="REAL" />
+  <VAR_OUTPUT NAME="valve" TYPE="REAL" />
+  <FUZZIFY NAME="temp">
+    <TERM NAME="cold" POINTS="2">
+      <POINT POINT_str="3,1" />
+      <POINT POINT_str="27,0" />
+    </TERM>
+    <TERM NAME="hot" POINTS="2">
+      <POINT POINT_str="3,0" />
+      <POINT POINT_str="27,1" />
+    </TERM>
+  </FUZZIFY>
+  <FUZZIFY NAME="pressure">
+    <TERM NAME="low" POINTS="2">
+      <POINT POINT_str="55,1" />
+      <POINT POINT_str="95,0" />
+    </TERM>
+    <TERM NAME="high" POINTS="2">
+      <POINT POINT_str="55,0" />
+      <POINT POINT_str="95,1" />
+    </TERM>
+  </FUZZIFY>
+  <DEFUZZIFY NAME="valve" METHOD="COGS" DEFAULT="0">
+    <TERM NAME="drainage" Singleton_value="-100" />
+    <TERM NAME="closed" Singleton_value="0" />
+    <TERM NAME="inlet" Singleton_value="100" />
+  </DEFUZZIFY>
+  <RULEBLOCK NAME="No1" Operdef="AND : MIN" ACCU="MAX">
+    <RULE NUMBER="1">
+      <Conditions Count="2">
+        <IF VarName="temp" IS="cold" />
+        <AND VarName="pressure" IS="low" />
+      </Conditions>
+      <Conclusions Count="1">
+        <THEN VarName="valve" IS="inlet" />
+      </Conclusions>
+    </RULE>
+    <RULE NUMBER="2">
+      <Conditions Count="2">
+        <IF VarName="temp" IS="cold" />
+        <AND VarName="pressure" IS="high" />
+      </Conditions>
+      <Conclusions Count="1" WITH="0.8">
+        <THEN VarName="valve" IS="closed" />
+      </Conclusions>
+    </RULE>
+    <RULE NUMBER="3">
+      <Conditions Count="2">
+        <IF VarName="temp" IS="hot" />
+        <AND VarName="pressure" IS="low" />
+      </Conditions>
+      <Conclusions Count="1">
+        <THEN VarName="valve" IS="closed" />
+      </Conclusions>
+    </RULE>
+    <RULE NUMBER="4">
+      <Conditions Count="2">
+        <IF VarName="temp" IS="hot" />
+        <AND VarName="pressure" IS="high" />
+      </Conditions>
+      <Conclusions Count="1">
+        <THEN VarName="valve" IS="drainage" />
+      </Conclusions>
+    </RULE>
+  </RULEBLOCK>
+</FUNCTION_BLOCK>

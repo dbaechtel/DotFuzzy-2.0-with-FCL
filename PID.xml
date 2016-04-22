@@ -1,0 +1,107 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<FUNCTION_BLOCK NAME="_PID">
+  <VAR_INPUT NAME="Error" TYPE="REAL" />
+  <VAR_INPUT NAME="DeltaError" TYPE="REAL" />
+  <VAR_INPUT NAME="SumError" TYPE="REAL" />
+  <VAR_OUTPUT NAME="ManVar" TYPE="REAL" />
+  <FUZZIFY NAME="Error">
+    <TERM NAME="LNegative" POINTS="2">
+      <POINT POINT_str="-20,1" />
+      <POINT POINT_str="0,0" />
+    </TERM>
+    <TERM NAME="normal" POINTS="3">
+      <POINT POINT_str="-20,0" />
+      <POINT POINT_str="0,1" />
+      <POINT POINT_str="20,0" />
+    </TERM>
+    <TERM NAME="close" POINTS="3">
+      <POINT POINT_str="-3,0" />
+      <POINT POINT_str="0,1" />
+      <POINT POINT_str="3,0" />
+    </TERM>
+    <TERM NAME="LPositive" POINTS="2">
+      <POINT POINT_str="0,0" />
+      <POINT POINT_str="20,1" />
+    </TERM>
+  </FUZZIFY>
+  <FUZZIFY NAME="DeltaError">
+    <TERM NAME="Negative" POINTS="2">
+      <POINT POINT_str="-100,1" />
+      <POINT POINT_str="0,0" />
+    </TERM>
+    <TERM NAME="Positive" POINTS="2">
+      <POINT POINT_str="0,0" />
+      <POINT POINT_str="100,1" />
+    </TERM>
+  </FUZZIFY>
+  <FUZZIFY NAME="SumError">
+    <TERM NAME="LNeg" POINTS="2">
+      <POINT POINT_str="-100,1" />
+      <POINT POINT_str="0,0" />
+    </TERM>
+    <TERM NAME="LPos" POINTS="2">
+      <POINT POINT_str="0,0" />
+      <POINT POINT_str="100,1" />
+    </TERM>
+  </FUZZIFY>
+  <DEFUZZIFY NAME="ManVar" METHOD="COG" DEFAULT="NC" RANGE ="-20..20">
+    <TERM NAME="LNegative" Singleton_value="-18" />
+    <TERM NAME="SNegative" Singleton_value="-6" />
+    <TERM NAME="SPositive" Singleton_value="6" />
+    <TERM NAME="LPositive" Singleton_value="18" />
+  </DEFUZZIFY>
+  <RULEBLOCK NAME="pid" Operdef="AND : MIN" ACCU="MAX">
+    <RULE NUMBER="1">
+      <Conditions Count="1">
+        <IF VarName="Error" IS="LNegative" />
+      </Conditions>
+      <Conclusions Count="1">
+        <THEN VarName="ManVar" IS="LPositive" />
+      </Conclusions>
+    </RULE>
+    <RULE NUMBER="2">
+      <Conditions Count="1">
+        <IF VarName="Error" IS="LPositive" />
+      </Conditions>
+      <Conclusions Count="1">
+        <THEN VarName="ManVar" IS="LNegative" />
+      </Conclusions>
+    </RULE>
+    <RULE NUMBER="3">
+      <Conditions Count="2">
+        <IF VarName="Error" IS="normal" />
+        <AND VarName="DeltaError" IS="Positive" />
+      </Conditions>
+      <Conclusions Count="1">
+        <THEN VarName="ManVar" IS="SNegative" />
+      </Conclusions>
+    </RULE>
+    <RULE NUMBER="4">
+      <Conditions Count="2">
+        <IF VarName="Error" IS="normal" />
+        <AND VarName="DeltaError" IS="Negative" />
+      </Conditions>
+      <Conclusions Count="1">
+        <THEN VarName="ManVar" IS="SPositive" />
+      </Conclusions>
+    </RULE>
+    <RULE NUMBER="5">
+      <Conditions Count="2">
+        <IF VarName="Error" IS="close" />
+        <AND VarName="SumError" IS="LPos" />
+      </Conditions>
+      <Conclusions Count="1">
+        <THEN VarName="ManVar" IS="SNegative" />
+      </Conclusions>
+    </RULE>
+    <RULE NUMBER="6">
+      <Conditions Count="2">
+        <IF VarName="Error" IS="close" />
+        <AND VarName="SumError" IS="LNeg" />
+      </Conditions>
+      <Conclusions Count="1">
+        <THEN VarName="ManVar" IS="SPositive" />
+      </Conclusions>
+    </RULE>
+  </RULEBLOCK>
+</FUNCTION_BLOCK>

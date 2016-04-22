@@ -1,0 +1,44 @@
+FUNCTION_BLOCK oven_control
+STRUCT color_type
+brown : REAL;
+light : REAL;
+dark : REAL;
+END_STRUCT
+VAR_INPUT
+humidity : REAL;
+color : color_type
+END_VAR
+VAR_OUTPUT
+dT1 : REAL;
+dT2 : REAL;
+END_VAR
+FUZZIFY humidity
+TERM low := (30,1) (50,0);
+TERM middle := (30,0) (50,1) (70,1) (80,0);
+TERM high := (70,0) (80,1);
+END_FUZZIFY
+DEFUZZIFY dT1
+TERM negative := -5;
+TERM zero := 0;
+TERM positive := 5;
+METHOD : COGS;
+DEFAULT := 0;
+END_DEFUZZIFY
+DEFUZZIFY dT2
+TERM negative := -3;
+TERM zero := 0;
+TERM positive := 3;
+ACCU : MAX;
+METHOD : COGS;
+DEFAULT := 0;
+END_DEFUZZIFY
+RULEBLOCK inference
+AND : MIN;
+ACCU : MAX;
+RULE1 : IF humidity IS middle AND color.brown THEN dT1 IS zero AND dT2 is zero
+RULE2 : IF humidity IS high THEN dT1 IS positive
+RULE3 : IF humidity IS low THEN dT1 IS negative
+RULE4 : IF humidity IS middle AND color.light THEN dT2 IS positive
+RULE5 : IF humidity IS middle AND color.dark THEN dT2 IS negative
+END_RULEBLOCK
+END_FUNCTION_BLOCK
