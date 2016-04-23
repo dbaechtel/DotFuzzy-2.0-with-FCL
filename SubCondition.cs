@@ -15,7 +15,8 @@ namespace DotFuzzy
         private string negatedTerm = String.Empty;
         private string termName = String.Empty;
         private string conditionOper = String.Empty;
-        private double weighting_factor = 1.0;
+        private string weighting_factor = "1.0000";
+        private double ruleValue = Double.NaN;
 
         /// <summary>
         /// Default constructor.
@@ -72,10 +73,19 @@ namespace DotFuzzy
         /// <summary>
         /// The Weighting_factor of the rule.
         /// </summary>
-        public double Weighting_factor
+        public string Weighting_factor
         {
             get { return weighting_factor; }
             set { weighting_factor = value; }
+        }
+
+        /// <summary>
+        /// The Value of the rule.
+        /// </summary>
+        public double Value
+        {
+            get { return ruleValue; }
+            set { ruleValue = value; }
         }
 
     }

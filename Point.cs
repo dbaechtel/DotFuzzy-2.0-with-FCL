@@ -10,6 +10,7 @@ namespace DotFuzzy
     /// </summary>
     public class Point
     {
+        public int index = Int32.MinValue;
         private double p1_val = Double.NaN;
         private string p1_var = String.Empty;
         private double p2_val = Double.NaN;
@@ -37,6 +38,42 @@ namespace DotFuzzy
                 this.p2_val = d;
                 this.p2_var = v;
             }
+        }
+
+        /// <param name="P1">P1_val.</param>
+        /// <param name="P2">P2_val.</param>
+        public Point(double P1, double P2)
+        {
+            this.p1_val = Math.Round(P1,6);
+            this.p1_var = "";
+            this.p2_val = Math.Round(P2,6);
+            this.p2_var = "";
+        }
+
+        /// <summary>
+        /// Clone this Point and return new Point.
+        /// </summary>
+        public Point ClonePoint()
+        {
+            Point clone = new Point();
+            clone.p1_val = this.p1_val;
+            clone.p1_var = this.p1_var;
+            clone.p2_val = this.p2_val;
+            clone.p2_var = this.p2_var;
+            return clone;
+        }
+
+        /// <summary>
+        /// Clone this Point and return new Point.
+        /// </summary>
+        public Point ClonePoint(double activation)
+        {
+            Point clone = new Point();
+            clone.p1_val = this.p1_val;
+            clone.p1_var = this.p1_var;
+            clone.p2_val = Math.Min(this.p2_val, activation);
+            clone.p2_var = this.p2_var;
+            return clone;
         }
 
         /// <summary>

@@ -47,6 +47,7 @@ namespace DotFuzzy
         private string conditionOper = String.Empty;
         private string blockName = String.Empty;
         private int rule_number = int.MinValue;
+        private Point thePoint = null;
         private int numToken = 0;
         string[] tokens;
         public FuzzyEngine engine;
@@ -62,6 +63,7 @@ namespace DotFuzzy
             "BSUM",
             "COA",
             "COG",
+            "COG_EXTEND",
             "COGS",
             "DEFAULT",
             "DEFUZZIFY",
@@ -116,16 +118,10 @@ namespace DotFuzzy
         /// </summary>
         private void ParseFile()
         {
-
-            if (FilePath == String.Empty)
-                throw new Exception("ParseFile not set");
-
             try
             {
-                if (!(File.Exists(FilePath)))
-                {
-                    throw new Exception("ParseFile not set!");
-                }
+                if (FilePath == String.Empty) throw new Exception("ParseFile: FilePath not set");
+                if (!(File.Exists(FilePath))) throw new Exception("ParseFile: FilePath " + FilePath + " does not exist!");
                 FileStream fs = new FileStream(FilePath, FileMode.Open);
                 StreamReader sr = new StreamReader(fs);
                 InputBuffer = sr.ReadToEnd();
@@ -135,10 +131,9 @@ namespace DotFuzzy
             }
             catch (Exception e)
             {
-                Console.WriteLine("The process failed: {0}", e.ToString());
+                Console.WriteLine("ParseFile failed: {0}", e.ToString());
                 engine = null;
             }
-
         }
 
         private void skipWhiteSpace()
@@ -169,7 +164,10 @@ namespace DotFuzzy
         {
             skipWhiteSpace();
             string tok = tokens[numToken];
-            if (keywords.Contains(tok)) throw new Exception("unexpected keyword " + tok + " found looking for identifier !");
+            if (keywords.Contains(tok))
+            {
+                throw new Exception("unexpected keyword " + tok + " found looking for identifier !");
+            }
             if (char.IsLetter(tok, 0) || tok.StartsWith("_")) return true;
             else return false;
         }
@@ -201,7 +199,7 @@ namespace DotFuzzy
                 }
                 if (InputBuffer.Contains("*)")) throw new Exception("Unmatched comment delimiter *) !");
                 state = 1;
-                Regex regex = new Regex(@"([ \r\n\t\v]|[:,;=\(\)]|_?\\w+_?\\w*|-?\\d+.?\\d*)");
+                Regex regex = new Regex(@"([ \r\n\t\v]|\:\=|[:,;=\(\)]|\.\.|_?\\w+_?\\w*|-?\\d+.?\\d*)");
                 tokens = regex.Split(InputBuffer).Where(s => s != String.Empty).ToArray();
                 //Char[] delimeters = { ' ', '\t', '\r', '\n', ':', '(', ',', ')', ';', '=', ',' };
                 //tokens = InputBuffer.Split(delimeters);
@@ -352,19 +350,35 @@ namespace DotFuzzy
                                         if (numToken >= tokens.Count()) throw new Exception("unexpected end of file !");
                                         if (tokens[numToken] != ":") throw new Exception("colon missing  following VAR " + varName + " !");
                                         numToken++;
+                                        skipWhiteSpace();
                                         if (numToken >= tokens.Count()) throw new Exception("unexpected end of file !");
+                                        LinguisticVariable lvar;
                                         switch (tokens[numToken]) // get variable type
                                         {
                                             case "REAL":
-                                                engine.LinguisticVariableCollection.Add(new LinguisticVariable(varName, "VAR", "REAL"));
+                                                lvar = new LinguisticVariable(varName, "VAR", "REAL");
+                                                engine.LinguisticVariableCollection.Add(lvar);
                                                 break;
                                             case "INT":
-                                                engine.LinguisticVariableCollection.Add(new LinguisticVariable(varName, "VAR", "INT"));
+                                                lvar = new LinguisticVariable(varName, "VAR", "INT");
+                                                engine.LinguisticVariableCollection.Add(lvar);
                                                 break;
                                             default:
                                                 throw new Exception("REAL or INT type missing in VAR " + varName + " !");
                                         }
                                         numToken++;
+                                        skipWhiteSpace();
+                                        if (tokens[numToken] == ":=")
+                                        {
+                                            numToken++;
+                                            skipWhiteSpace();
+                                            lvar.Value = System.Convert.ToDouble(tokens[numToken]);
+                                            numToken++;
+                                            skipWhiteSpace();
+                                        }
+                                        if (tokens[numToken] != ";") throw new Exception("semicolon missing following VAR_INPUT " + varName + " !");
+                                        numToken++;
+                                        state = 6;
                                     }
                                     else // no VAR variable name
                                     {
@@ -388,9 +402,9 @@ namespace DotFuzzy
                                         state = 10;
                                         break;
                                     //case "OPTIONS":
-                                        //numToken++;
-                                       // state = 11;
-                                       // break;
+                                    //numToken++;
+                                    // state = 11;
+                                    // break;
                                     case "END_FUNCTION_BLOCK":
                                         state = 3;
                                         break;
@@ -546,10 +560,10 @@ namespace DotFuzzy
                                             numToken++;
                                             skipWhiteSpace();
                                             if (numToken == tokens.Count()) throw new Exception("unexpected End of File near TERM " + term_name + " !");
-                                            if ((tokens[numToken] == ":") && (tokens[numToken + 1] == "="))
+                                            if (tokens[numToken] == ":=")
                                             {
-                                                linguisticVar.MembershipFunctionCollection.Add(new MembershipFunction(term_name));
-                                                numToken += 2;
+                                                linguisticVar.MembershipFunctionCollection.Add(new MembershipFunction(term_name, ref engine, ref linguisticVar));
+                                                numToken++;
                                                 state = 13;
                                             }
                                             else throw new Exception("':=' missing within FUZZIFY/DEFUZZIFY block near TERM " + term_name + " !");
@@ -577,7 +591,7 @@ namespace DotFuzzy
                                         numToken++;
                                     }
                                     else if (var2 == null) throw new Exception("variable_name " + tok + " within FUZZIFY/DEFUZZIFY membership_function is not found in VAR list !");
-                                    else if (var2.Type != "VAR") throw new Exception("variable_name " + tok + " within FUZZIFY/DFUZIFY membership_function is not found in VAR list !");
+                                    else if (var2.Direction != "VAR") throw new Exception("variable_name " + tok + " within FUZZIFY/DFUZIFY membership_function is not found in VAR list !");
                                     else if (var2 != null) // vaiable_name singleton
                                     {
                                         mem.Singleton_varName = tok;
@@ -597,7 +611,8 @@ namespace DotFuzzy
                                     string tok3 = tokens[numToken];
                                     if (isIdentifier()) // variable_name
                                     {
-                                        mem.pointCollection.Add(new Point(1, Double.NaN, tok3));
+                                        thePoint = new Point(1, Double.NaN, tok3);
+                                        mem.pointCollection.Add(thePoint);
                                         numToken++;
                                         state = 15;
                                         break;
@@ -605,7 +620,8 @@ namespace DotFuzzy
                                     else if (tok3.StartsWith("-") || char.IsDigit(tok3, 0)) // numeric_literal
                                     {
                                         double val = System.Convert.ToDouble(tok3);
-                                        mem.pointCollection.Add(new Point(1, val, String.Empty));
+                                        thePoint = new Point(1, val, String.Empty);
+                                        mem.pointCollection.Add(thePoint);
                                         numToken++;
                                         state = 15;
                                         break;
@@ -619,7 +635,8 @@ namespace DotFuzzy
                                 string tok2 = tokens[numToken];
                                 if (isIdentifier()) // variable_name
                                 {
-                                    mem.pointCollection.Add(new Point(2, Double.NaN, tok2));
+                                    thePoint.P2_var = tok2;
+                                    thePoint.P2_val = Double.NaN;
                                     numToken++;
                                     state = 16;
                                     break;
@@ -627,7 +644,8 @@ namespace DotFuzzy
                                 else if (char.IsDigit(tok2, 0)) // numeric_literal
                                 {
                                     double val = System.Convert.ToDouble(tok2);
-                                    mem.pointCollection.Add(new Point(2, val, String.Empty));
+                                    thePoint.P2_var = String.Empty;
+                                    thePoint.P2_val = val;
                                     numToken++;
                                     state = 16;
                                     break;
@@ -648,9 +666,12 @@ namespace DotFuzzy
                                 if (tokens[numToken] != ":") throw new Exception("syntax error in DFUZIFY block " + linguisticVar.Name + " near METHOD. Missing ':' !");
                                 numToken++;
                                 skipWhiteSpace();
-                                switch (tokens[numToken])
+                                string method = tokens[numToken];
+                                switch (method)
                                 {
                                     case "COG":
+                                        break;
+                                    case "COG_EXTEND":
                                         break;
                                     case "COGS":
                                         break;
@@ -663,7 +684,8 @@ namespace DotFuzzy
                                     default:
                                         throw new Exception("syntax error in DFUZIFY block " + linguisticVar.Name + " near METHOD. Unrecognized defuzzification_method " + tokens[numToken] + " !");
                                 }
-                                linguisticVar.Method = tokens[numToken];
+                                linguisticVar.Method = method;
+                                Console.WriteLine("LinguisticVar " + linguisticVar.Name + " Method = " + method);
                                 numToken++;
                                 skipWhiteSpace();
                                 if (tokens[numToken] != ";") throw new Exception("syntax error in DFUZIFY block " + linguisticVar.Name + " near METHOD. Missing ';' !");
@@ -675,8 +697,8 @@ namespace DotFuzzy
                                 numToken++;
                                 skipWhiteSpace();
                                 // expecting ":="
-                                if (tokens[numToken] != ":" && tokens[numToken + 1] != "=") throw new Exception("syntax error in DFUZIFY block " + linguisticVar.Name + " DEFAULT. Missing ':=' !");
-                                numToken += 2;
+                                if (tokens[numToken] != ":=") throw new Exception("syntax error in DFUZIFY block " + linguisticVar.Name + " DEFAULT. Missing ':=' !");
+                                numToken++;
                                 skipWhiteSpace();
                                 if (tokens[numToken] == "NC") // DEFAULT := No_Change (maintain value) if no rules fire
                                 {
@@ -702,7 +724,7 @@ namespace DotFuzzy
                                 {
                                     numToken++;
                                     skipWhiteSpace(); // expecting ":="
-                                    if (tokens[numToken] != ":" && tokens[numToken + 1] != "=") throw new Exception("syntax error in DFUZIFY block " + linguisticVar.Name + " RANGE. Missing ':=' !");
+                                    if (tokens[numToken] != ":=") throw new Exception("syntax error in DFUZIFY block " + linguisticVar.Name + " RANGE. Missing ':=' !");
                                     numToken++;
                                     skipWhiteSpace(); // expecting "("
                                     if (tokens[numToken] != "(") throw new Exception("syntax error in DFUZIFY block " + linguisticVar.Name + " RANGE. Missing '(' !");
@@ -711,8 +733,8 @@ namespace DotFuzzy
                                     linguisticVar.Range_min = System.Convert.ToDouble(tokens[numToken]);
                                     numToken++;
                                     skipWhiteSpace(); // expecting ".."
-                                    if (tokens[numToken] != "." && tokens[numToken + 1] != ".") throw new Exception("syntax error in DFUZIFY block " + linguisticVar.Name + " RANGE. Missing '..' !");
-                                    numToken += 2;
+                                    if (tokens[numToken] != "..") throw new Exception("syntax error in DFUZIFY block " + linguisticVar.Name + " RANGE. Missing '..' !");
+                                    numToken++;
                                     skipWhiteSpace(); // expecting Range_max
                                     linguisticVar.Range_max = System.Convert.ToDouble(tokens[numToken]);
                                     numToken++;
@@ -835,8 +857,9 @@ namespace DotFuzzy
                                             numToken++;
                                             skipWhiteSpace();
                                         }
-                                        if (tok4 == "NOT") // negated subcondition
+                                        if (tokens[numToken] == "NOT") // negated subcondition
                                         {
+                                            tok4 = tokens[numToken];
                                             numToken++;
                                             skipWhiteSpace(); // expecting "("
                                             if (tokens[numToken] != "(") throw new Exception("missing '(' following 'NOT' in RULEBLOCK " + blockName + " RULE " + rule_number + " !");
@@ -844,7 +867,7 @@ namespace DotFuzzy
                                             skipWhiteSpace(); // get variable name
                                         }
                                         else tok4 = String.Empty; // not negated
-                                        if (!isIdentifier()) throw new Exception("Syntax error: near " + tok4 + "in RULEBLOCK " + blockName + " RULE " + rule_number + " !");
+                                        if (!isIdentifier()) throw new Exception("Syntax error: near " + tokens[numToken] + " in RULEBLOCK " + blockName + " RULE " + rule_number + " !");
                                         SubCondition subCond = new SubCondition();
                                         fuzzyRule.conditionCollection.Add(subCond);
                                         subCond.NegatedVar = tok4;
@@ -854,7 +877,7 @@ namespace DotFuzzy
                                         skipWhiteSpace();
                                         if (tokens[numToken] == "IS") // subcondition
                                         {
-                                            if (subCond.NegatedVar != String.Empty) throw new Exception("Syntax error: near NOT " + subCond.VarName + "in RULEBLOCK " + blockName + " RULE " + rule_number + " !");
+                                            //if (subCond.NegatedVar != String.Empty) throw new Exception("Syntax error: near NOT " + subCond.VarName + " in RULEBLOCK " + blockName + " RULE " + rule_number + " !");
                                             numToken++;
                                             skipWhiteSpace();
                                             tok4 = tokens[numToken];
@@ -913,7 +936,7 @@ namespace DotFuzzy
                                         numToken++;
                                         skipWhiteSpace();
                                         tok6 = tokens[numToken];
-                                        conclusion.Weighting_factor = System.Convert.ToDouble(tok6);
+                                        conclusion.Weighting_factor = tok6;
                                         numToken++;
                                         skipWhiteSpace();
                                         if (tokens[numToken] != ";") throw new Exception("Syntax error: missing ';' following WITH " + tok6 + " in RULEBLOCK " + blockName + " RULE " + rule_number + " !");

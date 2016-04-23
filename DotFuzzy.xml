@@ -19,9 +19,60 @@
             Represents the inferential engine.
             </summary>
         </member>
-        <member name="M:DotFuzzy.FuzzyEngine.Defuzzify">
+        <member name="P:DotFuzzy.FuzzyEngine.LinguisticVariableCollection">
+            <summary>
+            A collection of linguistic variables.
+            </summary>
+        </member>
+        <member name="P:DotFuzzy.FuzzyEngine.FilePath">
+            <summary>
+            The path of the FCL-like XML file in which save the project.
+            </summary>
+        </member>
+        <member name="M:DotFuzzy.FuzzyEngine.Set_VAR_INPUT(System.String,System.Double)">
+            <summary>
+            Set the VAR_INPUT value.
+            </summary>
+        </member>
+        <member name="M:DotFuzzy.FuzzyEngine.FuzzifyAll">
+            <summary>
+            Calculates the fuzzification value of each VAR_INPUT.
+            </summary>
+        </member>
+        <member name="M:DotFuzzy.FuzzyEngine.Fuzzify(System.String)">
+            <summary>
+            Calculates the fuzzification value of each VAR_INPUT.
+            </summary>
+        </member>
+        <member name="M:DotFuzzy.FuzzyEngine.DefuzzifyAll">
             <summary>
             Calculates the defuzzification value with the CoG (Center of Gravity) technique.
+            </summary>
+        </member>
+        <member name="M:DotFuzzy.FuzzyEngine.Defuzzify(System.String)">
+            <summary>
+            Calculates the defuzzification value of LinguisticVariable lvar_name.
+            <param name="lvar_name"> Name of the LinguisticVariable to Defuzzify.</param>
+            </summary>
+        </member>
+        <member name="M:DotFuzzy.FuzzyEngine.Inference">
+            <summary>
+            Calculates the Inference of  all RuleBlocks.
+            </summary>
+        </member>
+        <member name="M:DotFuzzy.FuzzyEngine.Aggregation">
+            <summary>
+            Calculates the Aggregation of  all RuleBlocks.
+            </summary>
+        </member>
+        <member name="M:DotFuzzy.FuzzyEngine.Activation">
+            <summary>
+            Calculates the Activation of all RuleBlocks.
+            </summary>
+        </member>
+        <member name="P:DotFuzzy.FuzzyEngine.Function_block_name">
+            <summary>
+            The Function_block_name of the FB.
             </summary>
         </member>
         <member name="M:DotFuzzy.FuzzyEngine.Save(System.String)">
@@ -46,21 +97,6 @@
             Loads a project from a FCL-like XML file.
             </summary>
         </member>
-        <member name="P:DotFuzzy.FuzzyEngine.LinguisticVariableCollection">
-            <summary>
-            A collection of linguistic variables.
-            </summary>
-        </member>
-        <member name="P:DotFuzzy.FuzzyEngine.FilePath">
-            <summary>
-            The path of the FCL-like XML file in which save the project.
-            </summary>
-        </member>
-        <member name="P:DotFuzzy.FuzzyEngine.Function_block_name">
-            <summary>
-            The Function_block_name of the FB.
-            </summary>
-        </member>
         <member name="T:DotFuzzy.FuzzyRule">
             <summary>
             Represents a rule.
@@ -78,16 +114,14 @@
             <param name="name">The name of the rule.</param>
             <param name="text">The text of the rule.</param>
         </member>
-        <member name="M:DotFuzzy.FuzzyRule.Conditions">
-            <summary>
-            Returns the conditions of the rule.
-            The part of the rule between IF and THEN.
-            </summary>
-            <returns>The conditions of the rule.</returns>
-        </member>
         <member name="P:DotFuzzy.FuzzyRule.Name">
             <summary>
             The Name of the rule.
+            </summary>
+        </member>
+        <member name="P:DotFuzzy.FuzzyRule.Aggregation">
+            <summary>
+            The Aggregation of the rule.
             </summary>
         </member>
         <member name="P:DotFuzzy.FuzzyRule.Text">
@@ -99,6 +133,13 @@
             <summary>
             The value of the rule after the evaluation process.
             </summary>
+        </member>
+        <member name="M:DotFuzzy.FuzzyRule.Conditions">
+            <summary>
+            Returns the conditions of the rule.
+            The part of the rule between IF and THEN.
+            </summary>
+            <returns>The conditions of the rule.</returns>
         </member>
         <member name="T:DotFuzzy.FuzzyRuleCollection">
             <summary>
@@ -131,31 +172,6 @@
             <param name="name">The name that identificates the linguistic variable.</param>
             <param name="type">The type of the linguistic variable.</param>
             <param name="membershipFunctionCollection">A membership functions collection for the lingusitic variable.</param>
-        </member>
-        <member name="M:DotFuzzy.LinguisticVariable.Fuzzify(System.String)">
-            <summary>
-            Implements the fuzzification of the linguistic variable.
-            </summary>
-            <param name="membershipFunctionName">The membership function for which fuzzify the variable.</param>
-            <returns>The degree of membership.</returns>
-        </member>
-        <member name="M:DotFuzzy.LinguisticVariable.MinValue">
-            <summary>
-            Returns the minimum value of the linguistic variable.
-            </summary>
-            <returns>The minimum value of the linguistic variable.</returns>
-        </member>
-        <member name="M:DotFuzzy.LinguisticVariable.MaxValue">
-            <summary>
-            Returns the maximum value of the linguistic variable.
-            </summary>
-            <returns>The maximum value of the linguistic variable.</returns>
-        </member>
-        <member name="M:DotFuzzy.LinguisticVariable.Range">
-            <summary>
-            Returns the difference between MaxValue() and MinValue().
-            </summary>
-            <returns>The difference between MaxValue() and MinValue().</returns>
         </member>
         <member name="P:DotFuzzy.LinguisticVariable.Name">
             <summary>
@@ -197,6 +213,11 @@
             The Range_max of the linguistic variable.
             </summary>
         </member>
+        <member name="P:DotFuzzy.LinguisticVariable.Span">
+            <summary>
+            The Span of the mfunc.
+            </summary>
+        </member>
         <member name="P:DotFuzzy.LinguisticVariable.Default_NC">
             <summary>
             The Default_NC of the linguistic variable.
@@ -210,6 +231,41 @@
         <member name="P:DotFuzzy.LinguisticVariable.Value">
             <summary>
             The input value for the linguistic variable.
+            </summary>
+        </member>
+        <member name="P:DotFuzzy.LinguisticVariable.Act_value">
+            <summary>
+            The Act_value for the linguistic variable.
+            </summary>
+        </member>
+        <member name="M:DotFuzzy.LinguisticVariable.Fuzzify(System.String)">
+            <summary>
+            Implements the fuzzification of the linguistic variable.
+            </summary>
+            <param name="membershipFunctionName">The membership function for which fuzzify the variable.</param>
+            <returns>The degree of membership.</returns>
+        </member>
+        <member name="M:DotFuzzy.LinguisticVariable.MinValue">
+            <summary>
+            Returns the minimum value of the linguistic variable.
+            </summary>
+            <returns>The minimum value of the linguistic variable.</returns>
+        </member>
+        <member name="M:DotFuzzy.LinguisticVariable.MaxValue">
+            <summary>
+            Returns the maximum value of the linguistic variable.
+            </summary>
+            <returns>The maximum value of the linguistic variable.</returns>
+        </member>
+        <member name="M:DotFuzzy.LinguisticVariable.Range">
+            <summary>
+            Returns the difference between MaxValue() and MinValue().
+            </summary>
+            <returns>The difference between MaxValue() and MinValue().</returns>
+        </member>
+        <member name="M:DotFuzzy.LinguisticVariable.Accumulate">
+            <summary>
+            Accumulate the results of Membership functions.
             </summary>
         </member>
         <member name="T:DotFuzzy.LinguisticVariableCollection">
@@ -234,20 +290,8 @@
             Default constructor.
             </summary>
         </member>
-        <member name="M:DotFuzzy.MembershipFunction.#ctor(System.String)">
+        <member name="M:DotFuzzy.MembershipFunction.#ctor(System.String,DotFuzzy.FuzzyEngine@,DotFuzzy.LinguisticVariable@)">
             <param name="name">The name that identificates the membership function.</param>
-        </member>
-        <member name="M:DotFuzzy.MembershipFunction.Centorid">
-            <summary>
-            Calculate the centroid of a trapezoidal membership function.
-            </summary>
-            <returns>The value of centroid.</returns>
-        </member>
-        <member name="M:DotFuzzy.MembershipFunction.Area">
-            <summary>
-            Calculate the area of a trapezoidal membership function.
-            </summary>
-            <returns>The value of area.</returns>
         </member>
         <member name="P:DotFuzzy.MembershipFunction.Name">
             <summary>
@@ -272,6 +316,51 @@
         <member name="P:DotFuzzy.MembershipFunction.Value">
             <summary>
             The value of membership function after evaluation process.
+            </summary>
+        </member>
+        <member name="P:DotFuzzy.MembershipFunction.Max">
+            <summary>
+            The Max of membership function after evaluation process.
+            </summary>
+        </member>
+        <member name="P:DotFuzzy.MembershipFunction.DegreeAtMax">
+            <summary>
+            The Degree At Max of membership function after evaluation process.
+            </summary>
+        </member>
+        <member name="P:DotFuzzy.MembershipFunction.Min">
+            <summary>
+            The Min of membership function after evaluation process.
+            </summary>
+        </member>
+        <member name="P:DotFuzzy.MembershipFunction.DegreeAtMin">
+            <summary>
+            The Degree At Min of membership function after evaluation process.
+            </summary>
+        </member>
+        <member name="P:DotFuzzy.MembershipFunction.Act_value">
+            <summary>
+            The Act_value of membership function after evaluation process.
+            </summary>
+        </member>
+        <member name="M:DotFuzzy.MembershipFunction.Verify">
+            <summary>
+            Verify membership function is ordered min to max.
+            </summary>
+        </member>
+        <member name="M:DotFuzzy.MembershipFunction.ComputeArea(DotFuzzy.PointCollection)">
+            <summary>
+            Compute Area of membership function.
+            </summary>
+        </member>
+        <member name="M:DotFuzzy.MembershipFunction.ComputeActivation(System.Double)">
+            <summary>
+            Compute Activation of membership function.
+            </summary>
+        </member>
+        <member name="M:DotFuzzy.MembershipFunction.FindValue(DotFuzzy.PointCollection@,System.Double)">
+            <summary>
+            FindValue of membership function value corresponding to the location.
             </summary>
         </member>
         <member name="T:DotFuzzy.MembershipFunctionCollection">
@@ -322,6 +411,20 @@
             <param name="d">P1_val.</param>
             <param name="v">P1_var.</param>
         </member>
+        <member name="M:DotFuzzy.Point.#ctor(System.Double,System.Double)">
+            <param name="P1">P1_val.</param>
+            <param name="P2">P2_val.</param>
+        </member>
+        <member name="M:DotFuzzy.Point.ClonePoint">
+            <summary>
+            Clone this Point and return new Point.
+            </summary>
+        </member>
+        <member name="M:DotFuzzy.Point.ClonePoint(System.Double)">
+            <summary>
+            Clone this Point and return new Point.
+            </summary>
+        </member>
         <member name="P:DotFuzzy.Point.P1_val">
             <summary>
             The p1_val of the linguistic variable.
@@ -347,6 +450,16 @@
             Represents a collection of membership function Points.
             </summary>
         </member>
+        <member name="M:DotFuzzy.PointCollection.ComputeArea(DotFuzzy.LinguisticVariable@,DotFuzzy.MembershipFunction@)">
+            <summary>
+            Compute Area of membership function.
+            </summary>
+        </member>
+        <member name="M:DotFuzzy.PointCollection.LocateCenterArea(DotFuzzy.LinguisticVariable@,System.String)">
+            <summary>
+            Compute Area of membership function.
+            </summary>
+        </member>
         <member name="T:DotFuzzy.RuleBlockCollection">
             <summary>
             Represents a collection of rules.
@@ -359,13 +472,6 @@
         </member>
         <member name="M:DotFuzzy.RuleBlockCollection.#ctor(System.String)">
             <param name="name">The name of the RuleBlockCollection.</param>
-        </member>
-        <member name="M:DotFuzzy.RuleBlockCollection.Find(System.String)">
-            <summary>
-            Finds a fuzzy rule in a collection.
-            </summary>
-            <param name="ruleName">Rule name.</param>
-            <returns>The FuzzyRule, if founded.</returns>
         </member>
         <member name="P:DotFuzzy.RuleBlockCollection.OperatorDef">
             <summary>
@@ -386,6 +492,13 @@
             <summary>
             The Name of the RuleBlock.
             </summary>
+        </member>
+        <member name="M:DotFuzzy.RuleBlockCollection.Find(System.String)">
+            <summary>
+            Finds a fuzzy rule in a collection.
+            </summary>
+            <param name="ruleName">Rule name.</param>
+            <returns>The FuzzyRule, if founded.</returns>
         </member>
         <member name="T:DotFuzzy.SubCondition">
             <summary>
@@ -425,6 +538,11 @@
         <member name="P:DotFuzzy.SubCondition.Weighting_factor">
             <summary>
             The Weighting_factor of the rule.
+            </summary>
+        </member>
+        <member name="P:DotFuzzy.SubCondition.Value">
+            <summary>
+            The Value of the rule.
             </summary>
         </member>
     </members>

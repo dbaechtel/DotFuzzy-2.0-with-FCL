@@ -33,6 +33,7 @@ namespace DotFuzzy
         private string name = String.Empty;
         private string text = String.Empty;
         private double value = 0;
+        private double aggregation = Double.NaN;
         public ConditionCollection conditionCollection = new ConditionCollection();
         public ConditionCollection conclusionCollection = new ConditionCollection();
 
@@ -119,7 +120,17 @@ namespace DotFuzzy
             get { return name; }
             set { name = value; }
         }
+
+        /// <summary>
+        /// The Aggregation of the rule.
+        /// </summary>
+        public double Aggregation
+        {
+            get { return aggregation; }
+            set { aggregation = value; }
+        }
  
+
         /// <summary>
         /// The text of the rule.
         /// </summary>

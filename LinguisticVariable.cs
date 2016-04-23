@@ -39,8 +39,16 @@ namespace DotFuzzy
         private double max = Double.NaN;
         private string varName = String.Empty;
         private MembershipFunctionCollection membershipFunctionCollection = new MembershipFunctionCollection();
+        public PointCollection accumulation = new PointCollection();
         private string method = String.Empty;
-        private double var_value = 0;
+        private double var_value = Double.NaN;
+        private double act_value = Double.NaN;
+        private double span = Double.NaN;
+        public double area = Double.NaN;
+        public double addArea = Double.NaN;
+        public double addArea2 = Double.NaN;
+        public double center = Double.NaN;
+
 
         #endregion
 
@@ -53,6 +61,9 @@ namespace DotFuzzy
         {
             min = Double.NaN;
             max = Double.NaN;
+            area = Double.NaN;
+            addArea = Double.NaN;
+            addArea2 = Double.NaN;
         }
 
         /// <param name="name">The name that identificates the linguistic variable.</param>
@@ -65,6 +76,8 @@ namespace DotFuzzy
             this.Type = type;
             min = Double.NaN;
             max = Double.NaN;
+            addArea = Double.NaN;
+            addArea2 = Double.NaN;
         }
 
         /// <param name="name">The name that identificates the linguistic variable.</param>
@@ -155,6 +168,16 @@ namespace DotFuzzy
         }
 
         /// <summary>
+        /// The Span of the mfunc.
+        /// </summary>
+        public double Span
+        {
+            get { return span; }
+            set { span = value; }
+        }
+
+
+        /// <summary>
         /// The Default_NC of the linguistic variable.
         /// </summary>
         public string Default_NC
@@ -181,6 +204,15 @@ namespace DotFuzzy
             set { var_value = value; }
         }
 
+        /// <summary>
+        /// The Act_value for the linguistic variable.
+        /// </summary>
+        public double Act_value
+        {
+            get { return act_value; }
+            set { act_value = value; }
+        }
+
         #endregion
 
         #region Public Methods
@@ -194,16 +226,16 @@ namespace DotFuzzy
         {
             MembershipFunction membershipFunction = this.membershipFunctionCollection.Find(membershipFunctionName);
 
-/*
-            if ((membershipFunction.X0 <= this.Value) && (this.Value < membershipFunction.X1))
-                return (this.Value - membershipFunction.X0) / (membershipFunction.X1 - membershipFunction.X0);
-            else if ((membershipFunction.X1 <= this.Value) && (this.Value <= membershipFunction.X2))
-                return 1;
-            else if ((membershipFunction.X2 < this.Value) && (this.Value <= membershipFunction.X3))
-                return (membershipFunction.X3 - this.Value) / (membershipFunction.X3 - membershipFunction.X2);
-            else
-*/
-                return 0;
+            /*
+                        if ((membershipFunction.X0 <= this.Value) && (this.Value < membershipFunction.X1))
+                            return (this.Value - membershipFunction.X0) / (membershipFunction.X1 - membershipFunction.X0);
+                        else if ((membershipFunction.X1 <= this.Value) && (this.Value <= membershipFunction.X2))
+                            return 1;
+                        else if ((membershipFunction.X2 < this.Value) && (this.Value <= membershipFunction.X3))
+                            return (membershipFunction.X3 - this.Value) / (membershipFunction.X3 - membershipFunction.X2);
+                        else
+            */
+            return 0;
         }
 
         /// <summary>
@@ -252,7 +284,135 @@ namespace DotFuzzy
         /// <returns>The difference between MaxValue() and MinValue().</returns>
         public double Range()
         {
+            if (Double.IsNaN(this.MaxValue()) || Double.IsNaN(this.MinValue())) throw new Exception("LinguisticVariable " + this.Name + " MaxValue or MinValue is NaN");
             return this.MaxValue() - this.MinValue();
+        }
+
+        /// <summary>
+        /// Accumulate the results of Membership functions.
+        /// </summary>
+        public void Accumulate()
+        {
+            Console.WriteLine("Accumulate: lvar = " + this.Name);
+            double previousLoc = Double.NegativeInfinity;
+            double location;
+            int index;
+            int index2;
+            int prevMfunc = -1;
+            int mfuncIndex = -1;
+            bool finished = false;
+            index2 = 0;
+            this.accumulation.Clear();
+            foreach (MembershipFunction mfunc in this.MembershipFunctionCollection)
+            {
+                mfunc.index = index2++;
+                index = 0;
+                foreach (Point pnt in mfunc.activated_pointCollection)
+                {
+                    pnt.index = index++;
+                }
+            }
+            while (previousLoc < this.Range_max)
+            {
+                location = Double.PositiveInfinity;
+                finished = false;
+                while (!finished)
+                {
+                    foreach (MembershipFunction mfunc in this.MembershipFunctionCollection)
+                    {
+                        finished = true;
+                        if (mfunc.Act_value > 0)
+                        {
+                            foreach (Point pnt in mfunc.activated_pointCollection)
+                            {
+                                if (pnt.P1_val >= location) break;
+                                if (pnt.P1_val > previousLoc)
+                                {
+                                    location = pnt.P1_val;
+                                    mfunc.pntIndex = pnt.index;
+                                    finished = false;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+                double maximum = Double.NegativeInfinity;
+                foreach (MembershipFunction mfunc in this.MembershipFunctionCollection)
+                {
+                    if (mfunc.Act_value == 0) continue;
+                    if (mfunc.activated_pointCollection.Count == 0) continue;
+                    double value = mfunc.FindValue(ref mfunc.activated_pointCollection, location);
+                    if (value >= maximum)
+                    {
+                        maximum = Math.Round(value,6);
+                        mfuncIndex = mfunc.index;
+                        mfunc.pntIndex = mfunc.loc1;
+                        if (prevMfunc < 0) prevMfunc = mfuncIndex;
+                    }
+                }
+                if (prevMfunc < 0)
+                    throw new Exception("Accumulate: LinguisticVariable " + this.Name + " All MembershipFunction.Act_value == 0 !");
+                if (mfuncIndex != prevMfunc) // Intersection
+                {
+                    MembershipFunction mfunc = this.membershipFunctionCollection[mfuncIndex];
+                    MembershipFunction mfunc2 = this.membershipFunctionCollection[prevMfunc];
+                    Point thePoint = mfunc.activated_pointCollection[mfunc.pntIndex];
+                    Point thePoint2 = mfunc2.activated_pointCollection[mfunc2.pntIndex];
+                    if (mfunc.pntIndex == 0) // first point
+                    {
+                        if (location > previousLoc)
+                            this.accumulation.Add(new Point(location, maximum));
+                    }
+                    else if (mfunc2.pntIndex == mfunc2.activated_pointCollection.Count - 1) // last point
+                    {
+                        if (location > previousLoc) 
+                            this.accumulation.Add(new Point(location, maximum));
+                    }
+                    else // get Intersection
+                    {
+                        Point thePoint1 = mfunc.activated_pointCollection[mfunc.pntIndex - 1];
+                        Point thePoint3 = (mfunc2.pntIndex == 0) ? mfunc2.activated_pointCollection[mfunc2.pntIndex + 1] : mfunc2.activated_pointCollection[mfunc2.pntIndex - 1];
+                        double run = Math.Abs(thePoint.P1_val - thePoint1.P1_val);
+                        double run2 = Math.Abs(thePoint3.P1_val - thePoint2.P1_val);
+                        double rise = thePoint.P2_val - thePoint1.P2_val;
+                        double rise2 = thePoint3.P2_val - thePoint2.P2_val;
+                        if (run == 0 || run2 == 0 || rise2 == 0)
+                        {
+                            if (location > previousLoc) 
+                                this.accumulation.Add(new Point(location, Math.Max(thePoint.P2_val, thePoint1.P2_val)));
+                        }
+                        else
+                        {
+                            double x1 = thePoint2.P1_val;
+                            double x2 = thePoint3.P1_val;
+                            double x3 = thePoint1.P1_val;
+                            double x4 = thePoint.P1_val;
+                            double y1 = thePoint2.P2_val;
+                            double y2 = thePoint3.P2_val;
+                            double y3 = thePoint1.P2_val;
+                            double y4 = thePoint.P2_val;
+                            double num1 = (x1 * y2 - y1 * x2) * (x3 - x4) - (x1 - x2) * (x3 * y4 - y3 * x4);
+                            double num2 = (x1 * y2 - y1 * x2) * (y3 - y4) - (y1 - y2) * (x3 * y4 - y3 * x4);
+                            double den1 = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
+                            double den2 = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
+                            if (den1 == 0 || den2 == 0)
+                                throw new Exception("Accumulate: Intersection is Undefined !");
+                            location = Math.Round(num1 / den1, 6);
+                            maximum = Math.Round(num2 / den1, 6);
+                            if (location > previousLoc) 
+                                this.accumulation.Add(new Point(location, maximum));
+                        }
+                    }
+                }
+                else // no Intersection
+                {
+                    if (location > previousLoc) 
+                        this.accumulation.Add(new Point(location, maximum));
+                }
+                prevMfunc = mfuncIndex;
+                previousLoc = location;
+            }
         }
 
         #endregion

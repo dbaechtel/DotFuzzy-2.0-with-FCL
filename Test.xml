@@ -1,140 +1,102 @@
 ﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <FUNCTION_BLOCK NAME="_Test">
-  <VAR_INPUT NAME="test" TYPE="REAL" />
   <VAR_INPUT NAME="temp" TYPE="REAL" />
-  <VAR_INPUT NAME="pressure" TYPE="REAL" />
-  <VAR_INPUT NAME="setpoint" TYPE="REAL" />
-  <VAR_OUTPUT NAME="fan" TYPE="REAL" />
-  <VAR_OUTPUT NAME="heater" TYPE="REAL" RANGE ="-10..10" />
-  <VAR_OUTPUT NAME="valve" TYPE="REAL" />
-  <VAR NAME="bias" TYPE="INT" VALUE="0.1" />
-  <VAR NAME="pot" TYPE="REAL" />
-  <VAR NAME="pot2" TYPE="REAL" />
-  <FUZZIFY NAME="test">
-    <TERM NAME="pos" POINTS="1">
-      <POINT POINT_str="0,0" />
+  <VAR_INPUT NAME="bias" TYPE="REAL" />
+  <VAR_OUTPUT NAME="fan" TYPE="REAL" RANGE ="0..10" />
+  <VAR_OUTPUT NAME="change" TYPE="REAL" RANGE ="-100..100" />
+  <FUZZIFY NAME="temp">
+    <TERM NAME="cold" POINTS="1">
+      <POINT POINT_str="-10,1" />
+      <POINT POINT_str="45,1" />
+      <POINT POINT_str="70,0" />
+    </TERM>
+    <TERM NAME="warm" POINTS="1">
+      <POINT POINT_str="45,0" />
+      <POINT POINT_str="70,1" />
+      <POINT POINT_str="85,0" />
+    </TERM>
+    <TERM NAME="hot" POINTS="1">
+      <POINT POINT_str="70,0" />
+      <POINT POINT_str="85,1" />
+      <POINT POINT_str="110,1" />
+    </TERM>
+  </FUZZIFY>
+  <FUZZIFY NAME="bias">
+    <TERM NAME="reduce" POINTS="1">
+      <POINT POINT_str="-100,1" />
+      <POINT POINT_str="100,0" />
+    </TERM>
+    <TERM NAME="boost" POINTS="1">
+      <POINT POINT_str="-100,0" />
       <POINT POINT_str="100,1" />
     </TERM>
   </FUZZIFY>
-  <FUZZIFY NAME="temp">
-    <TERM NAME="cold" POINTS="1">
+  <DEFUZZIFY NAME="fan" METHOD="COG_EXTEND" DEFAULT="0" RANGE ="0..10">
+    <TERM NAME="off" POINTS="1">
+      <POINT POINT_str="0,1" />
+      <POINT POINT_str="3,0" />
+      <POINT POINT_str="10,0" />
+    </TERM>
+    <TERM NAME="slow" POINTS="1">
+      <POINT POINT_str="0,0" />
       <POINT POINT_str="3,1" />
-      <POINT POINT_str="27,0" />
+      <POINT POINT_str="10,0" />
     </TERM>
-    <TERM NAME="hot" POINTS="1">
+    <TERM NAME="fast" POINTS="1">
+      <POINT POINT_str="0,0" />
       <POINT POINT_str="3,0" />
-      <POINT POINT_str="27,1" />
+      <POINT POINT_str="10,1" />
     </TERM>
-  </FUZZIFY>
-  <FUZZIFY NAME="pressure">
-    <TERM NAME="low" POINTS="1">
-      <POINT POINT_str="55,1" />
-      <POINT POINT_str="95,0" />
-    </TERM>
-    <TERM NAME="high" POINTS="1">
-      <POINT POINT_str="55,0" />
-      <POINT POINT_str="95,1" />
-    </TERM>
-  </FUZZIFY>
-  <FUZZIFY NAME="setpoint">
-    <TERM NAME="neg" POINTS="1">
-      <POINT POINT_str="-3,1" />
-      <POINT POINT_str="bias,0.5" />
-      <POINT POINT_str="3,0" />
-    </TERM>
-    <TERM NAME="zero" Singleton_varName="bias" />
-    <TERM NAME="pos" Singleton_value="5" />
-  </FUZZIFY>
-  <DEFUZZIFY NAME="fan" METHOD="COG" DEFAULT="-1">
-    <TERM NAME="neg" POINTS="1">
-      <POINT POINT_str="-3,1" />
-      <POINT POINT_str="bias,0.5" />
-      <POINT POINT_str="3,0" />
-    </TERM>
-    <TERM NAME="center" Singleton_varName="bias" />
-    <TERM NAME="pos" Singleton_value="5" />
   </DEFUZZIFY>
-  <DEFUZZIFY NAME="heater" METHOD="RM" DEFAULT="NC" RANGE ="-10..10">
-    <TERM NAME="neg" POINTS="1">
-      <POINT POINT_str="-3,1" />
-      <POINT POINT_str="bias,0.5" />
-      <POINT POINT_str="3,0" />
+  <DEFUZZIFY NAME="change" METHOD="COG_EXTEND" DEFAULT="0" RANGE ="-100..100">
+    <TERM NAME="negative" POINTS="1">
+      <POINT POINT_str="-100,1" />
+      <POINT POINT_str="100,0" />
     </TERM>
-    <TERM NAME="zero" Singleton_varName="bias" />
-    <TERM NAME="pos" Singleton_value="5" />
+    <TERM NAME="positive" POINTS="1">
+      <POINT POINT_str="-100,0" />
+      <POINT POINT_str="100,1" />
+    </TERM>
   </DEFUZZIFY>
-  <DEFUZZIFY NAME="valve" METHOD="COGS" DEFAULT="0">
-    <TERM NAME="drainage" Singleton_value="-100" />
-    <TERM NAME="closed" Singleton_value="0" />
-    <TERM NAME="inlet" Singleton_value="100" />
-  </DEFUZZIFY>
-  <RULEBLOCK NAME="_PID" Operdef="OR : MAX" ACT="MIN" Accumulation="ACCU : BSUM">
-    <RULE NUMBER="-1">
-      <Conditions Count="2">
-        <IF VarName="pot" />
-        <OR VarName="pot2" />
-      </Conditions>
-      <Conclusions Count="2">
-        <THEN VarName="bias" />
-        <THEN VarName="pot" />
-      </Conclusions>
-    </RULE>
-    <RULE NUMBER="-2">
-      <Conditions Count="2">
-        <IF NegatedVar="NOT" VarName="temp" IS="cold" />
-        <AND NegatedVar="NOT" VarName="pressure" IS="low" />
-      </Conditions>
-      <Conclusions Count="2">
-        <THEN VarName="fan" IS="center" />
-        <THEN VarName="heater" IS="neg" WITH="bias" />
-      </Conclusions>
-    </RULE>
-    <RULE NUMBER="-3">
-      <Conditions Count="2">
-        <IF NegatedVar="NOT" VarName="temp" IS="NOT : cold" />
-        <AND VarName="pressure" IS="NOT : low" />
-      </Conditions>
-      <Conclusions Count="2">
-        <THEN VarName="fan" IS="center" />
-        <THEN VarName="heater" IS="neg" WITH="bias" />
-      </Conclusions>
-    </RULE>
-  </RULEBLOCK>
-  <RULEBLOCK NAME="No1" Operdef="AND : MIN" Accumulation="ACCU : MAX">
+  <RULEBLOCK NAME="TestBlock" Operdef="OR : MAX" ACT="MIN" Accumulation="ACCU : BSUM">
     <RULE NUMBER="1">
-      <Conditions Count="2">
+      <Conditions Count="1">
         <IF VarName="temp" IS="cold" />
-        <AND VarName="pressure" IS="low" />
       </Conditions>
       <Conclusions Count="1">
-        <THEN VarName="valve" IS="inlet" />
+        <THEN VarName="fan" IS="off" />
       </Conclusions>
     </RULE>
     <RULE NUMBER="2">
-      <Conditions Count="2">
-        <IF VarName="temp" IS="cold" />
-        <AND VarName="pressure" IS="high" />
+      <Conditions Count="1">
+        <IF VarName="temp" IS="warm" />
       </Conditions>
       <Conclusions Count="1">
-        <THEN VarName="valve" IS="closed" WITH="0.8" />
+        <THEN VarName="fan" IS="slow" />
       </Conclusions>
     </RULE>
     <RULE NUMBER="3">
-      <Conditions Count="2">
+      <Conditions Count="1">
         <IF VarName="temp" IS="hot" />
-        <AND VarName="pressure" IS="low" />
       </Conditions>
       <Conclusions Count="1">
-        <THEN VarName="valve" IS="closed" />
+        <THEN VarName="fan" IS="fast" />
       </Conclusions>
     </RULE>
     <RULE NUMBER="4">
-      <Conditions Count="2">
-        <IF VarName="temp" IS="hot" />
-        <AND VarName="pressure" IS="high" />
+      <Conditions Count="1">
+        <IF VarName="bias" IS="reduce" />
       </Conditions>
       <Conclusions Count="1">
-        <THEN VarName="valve" IS="drainage" />
+        <THEN VarName="change" IS="negative" />
+      </Conclusions>
+    </RULE>
+    <RULE NUMBER="5">
+      <Conditions Count="1">
+        <IF VarName="bias" IS="boost" />
+      </Conditions>
+      <Conclusions Count="1">
+        <THEN VarName="change" IS="positive" />
       </Conclusions>
     </RULE>
   </RULEBLOCK>

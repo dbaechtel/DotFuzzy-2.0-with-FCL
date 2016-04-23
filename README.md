@@ -1,17 +1,15 @@
-DotFuzzy 2.0
+DotFuzzy
 ========
 
 Disclaimer
 ----------
-This is the project I am working on. Use it as is at your own risk.
+This is the project I did for my bachelor thesis in 2008 and I never updated nor mantained it.
+I published the source because some developers are using it and I hope they can improve the library.
 
 What is DotFuzzy?
 -----------------
-DotFuzzy 2.0 is an open source stand-alone class library for fuzzy logic based upon  and an extension of MicheleBertoli's work. 
-
-The library is built in C# and can therefore be used by all languages the .NET environment supports. Because of a clean natural Object Oriented approach the library is easy to use and implement. DotFuzzy is designed to be a flexible, robust and scalable.
-
-DotFuzzy implements fuzzification, rules validation/evaluation and defuzzification. It is also possible to save and load projects in XML, whose tags are similar to Fuzzy Control Language.
+DotFuzzy is an open source stand-alone class library for fuzzy logic. The library is built in C# and can therefore be used by all languages the .NET environment supports. Because of a clean natural Object Oriented approach the library is easy to use and implement. DotFuzzy is designed to be a flexible, robust and scalable.
+DotFuzzy implements fuzzification, rules validation/evaluation and defuzzification with the centroid method. It is also possible to save and load projects in XML, whose tags are similar to Fuzzy Control Language.
 
 Usage
 -----
