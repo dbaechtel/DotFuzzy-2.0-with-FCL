@@ -1,0 +1,46 @@
+FUNCTION_BLOCK _Test
+VAR_OUTPUT
+fan : REAL;
+change: REAL;
+END_VAR
+VAR_INPUT
+temp : REAL;
+bias: REAL;
+END_VAR
+VAR
+END_VAR
+FUZZIFY temp
+TERM cold := (-10, 1) (45, 1) (70, 0);
+TERM warm := (45, 0) (70, 1) (85, 0);
+TERM hot := (70, 0) (85, 1) (110, 1);
+END_FUZZIFY
+FUZZIFY bias
+TERM reduce := (-100, 1)(100, 0);
+TERM boost := (-100, 0)(100, 1);
+END_FUZZIFY
+DEFUZZIFY fan
+TERM off := (0,1) (3,0) (10,0);
+TERM slow := (0,0) (3,1) (10,0);
+TERM fast := (0,0) (3,0) (10,1);
+METHOD : COG_EXTEND;
+DEFAULT := 0;
+RANGE := (0..10);
+END_DEFUZZIFY
+DEFUZZIFY change
+TERM negative := (-100,1) (100,0);
+TERM positive := (-100,0) (100,1);
+METHOD : COG_EXTEND;
+DEFAULT := 0;
+RANGE := (-100..100);
+END_DEFUZZIFY
+RULEBLOCK TestBlock
+OR:MAX;
+ACT : MIN;
+ACCU : BSUM;
+RULE 1: IF temp IS cold THEN fan IS off ;
+RULE 2 : IF temp IS warm THEN fan IS slow ;
+RULE 3 : IF temp IS hot THEN fan IS fast ;
+RULE 4 : IF bias IS reduce THEN change IS negative ;
+RULE 5 : IF bias IS boost THEN change IS positive ;
+END_RULEBLOCK
+END_FUNCTION_BLOCK

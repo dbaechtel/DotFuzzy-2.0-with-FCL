@@ -1,0 +1,103 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<FUNCTION_BLOCK NAME="_Test">
+  <VAR_INPUT NAME="temp" TYPE="REAL" />
+  <VAR_INPUT NAME="bias" TYPE="REAL" />
+  <VAR_OUTPUT NAME="fan" TYPE="REAL" RANGE ="0..10" />
+  <VAR_OUTPUT NAME="change" TYPE="REAL" RANGE ="-100..100" />
+  <FUZZIFY NAME="temp">
+    <TERM NAME="cold" POINTS="1">
+      <POINT POINT_str="-10,1" />
+      <POINT POINT_str="45,1" />
+      <POINT POINT_str="70,0" />
+    </TERM>
+    <TERM NAME="warm" POINTS="1">
+      <POINT POINT_str="45,0" />
+      <POINT POINT_str="70,1" />
+      <POINT POINT_str="85,0" />
+    </TERM>
+    <TERM NAME="hot" POINTS="1">
+      <POINT POINT_str="70,0" />
+      <POINT POINT_str="85,1" />
+      <POINT POINT_str="110,1" />
+    </TERM>
+  </FUZZIFY>
+  <FUZZIFY NAME="bias">
+    <TERM NAME="reduce" POINTS="1">
+      <POINT POINT_str="-100,1" />
+      <POINT POINT_str="100,0" />
+    </TERM>
+    <TERM NAME="boost" POINTS="1">
+      <POINT POINT_str="-100,0" />
+      <POINT POINT_str="100,1" />
+    </TERM>
+  </FUZZIFY>
+  <DEFUZZIFY NAME="fan" METHOD="COG_EXTEND" DEFAULT="0" RANGE ="0..10">
+    <TERM NAME="off" POINTS="1">
+      <POINT POINT_str="0,1" />
+      <POINT POINT_str="3,0" />
+      <POINT POINT_str="10,0" />
+    </TERM>
+    <TERM NAME="slow" POINTS="1">
+      <POINT POINT_str="0,0" />
+      <POINT POINT_str="3,1" />
+      <POINT POINT_str="10,0" />
+    </TERM>
+    <TERM NAME="fast" POINTS="1">
+      <POINT POINT_str="0,0" />
+      <POINT POINT_str="3,0" />
+      <POINT POINT_str="10,1" />
+    </TERM>
+  </DEFUZZIFY>
+  <DEFUZZIFY NAME="change" METHOD="COG_EXTEND" DEFAULT="0" RANGE ="-100..100">
+    <TERM NAME="negative" POINTS="1">
+      <POINT POINT_str="-100,1" />
+      <POINT POINT_str="100,0" />
+    </TERM>
+    <TERM NAME="positive" POINTS="1">
+      <POINT POINT_str="-100,0" />
+      <POINT POINT_str="100,1" />
+    </TERM>
+  </DEFUZZIFY>
+  <RULEBLOCK NAME="TestBlock" Operdef="OR : MAX" ACT="MIN" Accumulation="ACCU : BSUM">
+    <RULE NUMBER="1">
+      <Conditions Count="1">
+        <IF VarName="temp" IS="cold" />
+      </Conditions>
+      <Conclusions Count="1">
+        <THEN VarName="fan" IS="off" />
+      </Conclusions>
+    </RULE>
+    <RULE NUMBER="2">
+      <Conditions Count="1">
+        <IF VarName="temp" IS="warm" />
+      </Conditions>
+      <Conclusions Count="1">
+        <THEN VarName="fan" IS="slow" />
+      </Conclusions>
+    </RULE>
+    <RULE NUMBER="3">
+      <Conditions Count="1">
+        <IF VarName="temp" IS="hot" />
+      </Conditions>
+      <Conclusions Count="1">
+        <THEN VarName="fan" IS="fast" />
+      </Conclusions>
+    </RULE>
+    <RULE NUMBER="4">
+      <Conditions Count="1">
+        <IF VarName="bias" IS="reduce" />
+      </Conditions>
+      <Conclusions Count="1">
+        <THEN VarName="change" IS="negative" />
+      </Conclusions>
+    </RULE>
+    <RULE NUMBER="5">
+      <Conditions Count="1">
+        <IF VarName="bias" IS="boost" />
+      </Conditions>
+      <Conclusions Count="1">
+        <THEN VarName="change" IS="positive" />
+      </Conclusions>
+    </RULE>
+  </RULEBLOCK>
+</FUNCTION_BLOCK>
