@@ -1,5 +1,5 @@
 DotFuzzy 2.0
-
+------------
 Disclaimer
 
 This is the project I am working on. Use it as is at your own risk.
