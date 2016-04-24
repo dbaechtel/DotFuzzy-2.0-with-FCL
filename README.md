@@ -1,11 +1,12 @@
 DotFuzzy 2.0
 ------------
-Disclaimer
 
+Disclaimer
+----------
 This is the project I am working on. Use it as is at your own risk.
 
 What is DotFuzzy 2.0?
-
+---------------------
 DotFuzzy 2.0 is an open source stand-alone class library for fuzzy logic based upon and an extension of MicheleBertoli's work. 
 
 The library is built in C# and can therefore be used by all languages the .NET environment supports. Because of a clean natural Object Oriented approach the library is easy to use and implement. DotFuzzy is designed to be a flexible, robust and scalable.
